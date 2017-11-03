@@ -1,0 +1,10 @@
+[package]
+name = "yunodoc"
+version = "0.1.0"
+authors = ["Ian Cronkright <txurtian@yahoo.com>"]
+
+[dependencies]
+clap = "2.26.2"
+rust-ini = "0.10.0"
+liquid = "0.10.1"
+regex = "0.2.2"
