@@ -231,7 +231,7 @@ purpose = \"~Purpose~\"";
 
 
         // Variables
-        for (i, k) in l_var_vec.iter().enumerate() {
+        for (i, _k) in l_var_vec.iter().enumerate() {
             let mut l_variable_context = Context::new();
             l_variable_context.set_val("variable", Value::str(format!("{word:<spaces$}", word=&l_var_vec[i], spaces=l_var_longest).as_str()));
             l_variable_context.set_val("type", Value::str(format!("{word:<spaces$}", word=&l_typ_vec[i], spaces=l_typ_longest).as_str()));
