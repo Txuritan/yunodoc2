@@ -31,7 +31,7 @@ purpose = \"~Purpose~\"";
 
     // Args Parsing
     let l_arg_matches = App::new("yunodoc")
-        .version("2.0.0")
+        .version("2.0.1")
         .author("Ian Cronkright <txurtian@yahoo.com>")
         .about("Docs some things")
         .arg(Arg::with_name("STYLE")
