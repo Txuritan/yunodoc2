@@ -1,4 +1,4 @@
-# YUNODOC 2
+# YUNODOC 2(.0.2)
 
 Turns doc comments, ```# DOC VAR ... TYP ... PUR ...```, into a doc table.
 
@@ -29,3 +29,7 @@ mFltTemp = 0.0
 ```
 
 Please note this will not append the table to the file its not that complex yet.
+
+## TODO
+  - [ ] Append table to file
+  - [ ] Detect Python vs C based (C/C++, C#, Java)

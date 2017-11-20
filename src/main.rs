@@ -6,6 +6,7 @@ extern crate regex;
 
 use std::io::BufReader;
 use std::io::BufRead;
+use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -31,7 +32,7 @@ purpose = \"~Purpose~\"";
 
     // Args Parsing
     let l_arg_matches = App::new("yunodoc")
-        .version("2.0.1")
+        .version("2.0.2")
         .author("Ian Cronkright <txurtian@yahoo.com>")
         .about("Docs some things")
         .arg(Arg::with_name("STYLE")
@@ -41,13 +42,13 @@ purpose = \"~Purpose~\"";
             .help("Table output style")
             .takes_value(true)
         )
-        /*.arg(Arg::with_name("INLINE")
+        .arg(Arg::with_name("INLINE")
             .short("i")
             .long("inline")
             .value_name("INLINE")
-            .help("Uses build in styles without making a file")
+            .help("Uses built in styles without making a file")
             .takes_value(false)
-        )*/
+        )
         .arg(Arg::with_name("GENERATE")
             .short("g")
             .long("generate")
@@ -64,7 +65,14 @@ purpose = \"~Purpose~\"";
 
 
     if l_arg_matches.is_present("GENERATE") {
-
+    
+        match fs::create_dir("styles") {
+            Ok(folder) => folder,
+            Err(e) => {
+                println!("{}", e);
+                return;
+            }
+        };
 
         let mut l_style_file_ian = match File::create("styles/ian.ini") {
             Ok(file) => file,
@@ -85,24 +93,45 @@ purpose = \"~Purpose~\"";
 
     } else {
 
-
         let l_arg_file = l_arg_matches.value_of("FILE").unwrap();
-        let l_arg_style = l_arg_matches.value_of("STYLE").unwrap();
 
 
-        // Style Load
-        let l_style_config = Ini::load_from_file("styles/".to_owned() + l_arg_style + ".ini").unwrap();
+        let l_arg_style;
 
-        let l_table_section = l_style_config.section(Some("Table".to_owned())).unwrap();
+        let l_style_config;
 
-        let l_table_separator = l_table_section.get("separator").unwrap();
-        let l_table_empty = l_table_section.get("empty").unwrap();
+        let mut l_table_section;
 
-        let l_table_section = l_style_config.section(Some("Title".to_owned())).unwrap();
+        let l_table_separator;
+        let l_table_empty;
 
-        let l_title_variable = l_table_section.get("variable").unwrap();
-        let l_title_type = l_table_section.get("type").unwrap();
-        let l_title_purpose = l_table_section.get("purpose").unwrap();
+        let l_title_variable;
+        let l_title_type;
+        let l_title_purpose;
+
+        if l_arg_matches.is_present("INLINE") {
+            l_table_separator = "#-----{{variable}}----------{{type}}----------{{purpose}}-----";
+            l_table_empty = "#     {{variable}}          {{type}}          {{purpose}}     ";
+
+            l_title_variable = "Variables";
+            l_title_type = "Type";
+            l_title_purpose = "Purpose";
+        } else {
+            l_arg_style = l_arg_matches.value_of("STYLE").unwrap();
+
+            l_style_config = Ini::load_from_file("styles/".to_owned() + l_arg_style + ".ini").unwrap();
+
+            l_table_section = l_style_config.section(Some("Table".to_owned())).unwrap();
+
+            l_table_separator = l_table_section.get("separator").unwrap();
+            l_table_empty = l_table_section.get("empty").unwrap();
+
+            l_table_section = l_style_config.section(Some("Title".to_owned())).unwrap();
+
+            l_title_variable = l_table_section.get("variable").unwrap();
+            l_title_type = l_table_section.get("type").unwrap();
+            l_title_purpose = l_table_section.get("purpose").unwrap();
+        }
 
 
         // Code Load
