@@ -32,7 +32,7 @@ purpose = \"~Purpose~\"";
 
     // Args Parsing
     let l_arg_matches = App::new("yunodoc")
-        .version("2.0.2")
+        .version("2.1.0")
         .author("Ian Cronkright <txurtian@yahoo.com>")
         .about("Docs some things")
         .arg(Arg::with_name("STYLE")
@@ -147,7 +147,31 @@ purpose = \"~Purpose~\"";
 
 
         // Regex Compile
-        let l_doc_reg = match Regex::new(r"((#|//) DOC .*)") {
+        let l_doc_reg = match Regex::new(r"((\#|//|\-\-) DOC .*)") {
+            Ok(r) => r,
+            Err(e) => {
+                println!("Could not compile regex: {}", e);
+                return;
+            }
+        };
+
+        let l_doc_reg_py = match Regex::new(r"((\#) DOC .*)") {
+            Ok(r) => r,
+            Err(e) => {
+                println!("Could not compile regex: {}", e);
+                return;
+            }
+        };
+
+        let l_doc_reg_c = match Regex::new(r"((//) DOC .*)") {
+            Ok(r) => r,
+            Err(e) => {
+                println!("Could not compile regex: {}", e);
+                return;
+            }
+        };
+
+        let l_doc_reg_lua = match Regex::new(r"((\-\-) DOC .*)") {
             Ok(r) => r,
             Err(e) => {
                 println!("Could not compile regex: {}", e);
@@ -184,11 +208,25 @@ purpose = \"~Purpose~\"";
         let mut l_pur_vec: Vec<String> = Vec::new();
 
 
+        let mut l_com_typ_py = false;
+        let mut l_com_typ_c = false;
+        let mut l_com_typ_lua = false;
+
+
         // Match Lines
         for i_line in l_file_buffer.lines() {
             let l_line = i_line.unwrap();
 
             if l_doc_reg.is_match(&l_line) {
+
+                if l_doc_reg_py.is_match(&l_line) {
+                    l_com_typ_py = true;
+                } else if l_doc_reg_c.is_match(&l_line) {
+                    l_com_typ_c = true;
+                } else if l_doc_reg_lua.is_match(&l_line) {
+                    l_com_typ_lua = true;
+                }
+
                 for i_var_cap in l_var_reg.captures_iter(&l_line) {
                     &l_var_vec.push(i_var_cap[1].to_string());
                 }
@@ -239,7 +277,14 @@ purpose = \"~Purpose~\"";
         let l_seperator_output = l_seperator_template.render(&mut l_seperator_context);
 
         let l_seperator_string : String = l_seperator_output.unwrap().unwrap();
-        l_table = format!("{}{}\n", l_table, &l_seperator_string);
+        
+        if l_com_typ_py {
+            l_table = format!("{}{}\n", l_table, &l_seperator_string);
+        } else if l_com_typ_c {
+            l_table = format!("{}// {}\n", l_table, &l_seperator_string);
+        } else if l_com_typ_lua {
+            l_table = format!("{}-- {}\n", l_table, &l_seperator_string);
+        }
 
 
         // Header
@@ -252,11 +297,23 @@ purpose = \"~Purpose~\"";
 
         let l_header_output = l_header_template.render(&mut l_header_context);
 
-        l_table = format!("{}{}\n", l_table, l_header_output.unwrap().unwrap());
+        if l_com_typ_py {
+            l_table = format!("{}{}\n", l_table, l_header_output.unwrap().unwrap());
+        } else if l_com_typ_c {
+            l_table = format!("{}// {}\n", l_table, l_header_output.unwrap().unwrap());
+        } else if l_com_typ_lua {
+            l_table = format!("{}-- {}\n", l_table, l_header_output.unwrap().unwrap());
+        }
 
 
         // Add Seperator
-        l_table = format!("{}{}\n", l_table, &l_seperator_string);
+        if l_com_typ_py {
+            l_table = format!("{}{}\n", l_table, &l_seperator_string);
+        } else if l_com_typ_c {
+            l_table = format!("{}// {}\n", l_table, &l_seperator_string);
+        } else if l_com_typ_lua {
+            l_table = format!("{}-- {}\n", l_table, &l_seperator_string);
+        }
 
 
         // Variables
@@ -270,12 +327,24 @@ purpose = \"~Purpose~\"";
 
             let l_variable_output = l_variable_template.render(&mut l_variable_context);
 
-            l_table = format!("{}{}\n", l_table, l_variable_output.unwrap().unwrap());
+            if l_com_typ_py {
+                l_table = format!("{}{}\n", l_table, l_variable_output.unwrap().unwrap());
+            } else if l_com_typ_c {
+                l_table = format!("{}// {}\n", l_table, l_variable_output.unwrap().unwrap());
+            } else if l_com_typ_lua {
+                l_table = format!("{}-- {}\n", l_table, l_variable_output.unwrap().unwrap());
+            }
         }
 
 
         // Add Seperator
-        l_table = format!("{}{}", l_table, &l_seperator_string);
+        if l_com_typ_py {
+            l_table = format!("{}{}\n", l_table, &l_seperator_string);
+        } else if l_com_typ_c {
+            l_table = format!("{}// {}\n", l_table, &l_seperator_string);
+        } else if l_com_typ_lua {
+            l_table = format!("{}-- {}\n", l_table, &l_seperator_string);
+        }
 
 
         println!("{}", l_table);
